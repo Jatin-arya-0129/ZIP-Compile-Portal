@@ -5,22 +5,17 @@ const fs = require('fs-extra');
 const path = require('path');
 const AdmZip = require('adm-zip');
 const archiver = require('archiver');
-const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 const upload = multer({
   dest: 'uploads/'
 });
-
-function getFileHash(filePath) {
-  const fileBuffer = fs.readFileSync(filePath);
-  return crypto.createHash('md5').update(fileBuffer).digest('hex');
-}
 
 app.post('/upload', upload.array('zips'), async (req, res) => {
 
@@ -35,11 +30,9 @@ app.post('/upload', upload.array('zips'), async (req, res) => {
       });
     }
 
-    const tempFolder = path.join(__dirname, 'temp', Date.now().toString());
+    const tempFolder = path.join(__dirname, 'temp');
 
     await fs.ensureDir(tempFolder);
-
-    const hashes = new Set();
 
     for (const file of files) {
 
@@ -48,39 +41,7 @@ app.post('/upload', upload.array('zips'), async (req, res) => {
       zip.extractAllTo(tempFolder, true);
     }
 
-    async function scanDirectory(dir) {
-
-      const items = await fs.readdir(dir);
-
-      for (const item of items) {
-
-        const fullPath = path.join(dir, item);
-
-        const stat = await fs.stat(fullPath);
-
-        if (stat.isDirectory()) {
-
-          await scanDirectory(fullPath);
-
-        } else {
-
-          const hash = getFileHash(fullPath);
-
-          if (hashes.has(hash)) {
-
-            await fs.remove(fullPath);
-
-          } else {
-
-            hashes.add(hash);
-          }
-        }
-      }
-    }
-
-    await scanDirectory(tempFolder);
-
-    await fs.ensureDir(path.join(__dirname, 'output'));
+    await fs.ensureDir('output');
 
     const finalZip = `compiled_${Date.now()}.zip`;
 
@@ -100,11 +61,7 @@ app.post('/upload', upload.array('zips'), async (req, res) => {
 
     output.on('close', async () => {
 
-      await fs.remove(tempFolder);
-
-      for (const file of files) {
-        await fs.remove(file.path);
-      }
+      await fs.emptyDir(tempFolder);
 
       res.json({
         success: true,
@@ -122,6 +79,7 @@ app.post('/upload', upload.array('zips'), async (req, res) => {
       message: 'Server Error'
     });
   }
+
 });
 
 app.get('/download/:file', (req, res) => {
@@ -131,7 +89,8 @@ app.get('/download/:file', (req, res) => {
   res.download(filePath);
 });
 
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
+
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
