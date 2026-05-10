@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZIP Compile Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark">
+
+  <div class="theme-box">
+    <select id="themeSwitcher">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+      <option value="neon">Neon</option>
+    </select>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+
+      <h1>ZIP Compile Portal</h1>
+
+      <p>
+        Upload Multiple ZIP Files & Get One Final Compiled ZIP
+      </p>
+
+      <div class="upload-box">
+
+        <input type="file" id="zipInput" multiple accept=".zip">
+
+        <span>
+          Drag & Drop ZIP Files Here
+        </span>
+
+      </div>
+
+      <div id="preview"></div>
+
+      <button id="uploadBtn">
+        Compile ZIP Files
+      </button>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div id="result"></div>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
